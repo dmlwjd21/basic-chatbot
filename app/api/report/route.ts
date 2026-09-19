@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabaseClient";
 
 export async function POST(req: NextRequest) {
   try {
@@ -145,7 +146,30 @@ ${debateHistoryText}
     });
 
     const reportJson = JSON.parse(response.text || "{}");
-    return NextResponse.json({ report: reportJson });
+
+    let savedRecordId: string | null = null;
+    // Supabase DB debate_records 테이블에 저장
+    try {
+      const { data: insertedData, error: dbError } = await supabase
+        .from("debate_records")
+        .insert({
+          stance: stance === "help" ? "떼어준다" : "떼어주지 않는다",
+          messages: messages,
+          report: reportJson,
+        })
+        .select("id")
+        .single();
+
+      if (dbError) {
+        console.error("Supabase Save Error:", dbError);
+      } else if (insertedData) {
+        savedRecordId = insertedData.id;
+      }
+    } catch (dbError) {
+      console.error("Supabase Save Warning:", dbError);
+    }
+
+    return NextResponse.json({ report: reportJson, recordId: savedRecordId });
   } catch (error: unknown) {
     console.error("Report API Error:", error);
     const errorMessage =
@@ -153,4 +177,3 @@ ${debateHistoryText}
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
-

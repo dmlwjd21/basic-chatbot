@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState, useRef, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 type Stance = "help" | "no_help";
 
@@ -40,6 +41,14 @@ type ReportData = {
   }>;
 };
 
+export type SavedRecord = {
+  id: string;
+  stance: string;
+  messages: Message[];
+  report: ReportData;
+  created_at: string;
+};
+
 const PROMPT_SUGGESTIONS: Record<Stance, string[]> = {
   help: [
     "음식이 겹쳐서 못 먹는 걸 도와주는 건 단순한 테이블 매너야.",
@@ -70,6 +79,12 @@ export default function Home() {
   // Report State
   const [report, setReport] = useState<ReportData | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [savedRecordId, setSavedRecordId] = useState<string | null>(null);
+
+  // Supabase Saved History State
+  const [savedRecords, setSavedRecords] = useState<SavedRecord[]>([]);
+  const [isLoadingRecords, setIsLoadingRecords] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -77,12 +92,37 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isAiThinking]);
 
+  // Load records from Supabase
+  const loadSavedRecords = async () => {
+    setIsLoadingRecords(true);
+    try {
+      const { data, error } = await supabase
+        .from("debate_records")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(15);
+
+      if (!error && data) {
+        setSavedRecords(data as SavedRecord[]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch records:", err);
+    } finally {
+      setIsLoadingRecords(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSavedRecords();
+  }, [stage]);
+
   // Start Debate
   const handleStartDebate = (selectedStance: Stance) => {
     setStance(selectedStance);
     setStage("chat");
     setCurrentTurn(1);
     setReport(null);
+    setSavedRecordId(null);
     setErrorMsg(null);
 
     const initialAiMsg: Message = {
@@ -174,7 +214,7 @@ export default function Home() {
     }
   };
 
-  // Generate and View Report
+  // Generate and View Report (Saves to Supabase)
   const handleViewReport = async () => {
     if (!stance || messages.length === 0) return;
     setIsGeneratingReport(true);
@@ -196,7 +236,11 @@ export default function Home() {
       }
 
       setReport(data.report);
+      if (data.recordId) {
+        setSavedRecordId(data.recordId);
+      }
       setStage("report");
+      loadSavedRecords(); // refresh saved records list
     } catch (err: unknown) {
       console.error(err);
       setErrorMsg(
@@ -207,6 +251,17 @@ export default function Home() {
     }
   };
 
+  // Open a past record from Supabase
+  const handleOpenRecord = (record: SavedRecord) => {
+    setStance(record.stance.includes("떼어준다") && !record.stance.includes("않는다") ? "help" : "no_help");
+    setMessages(record.messages || []);
+    setReport(record.report);
+    setSavedRecordId(record.id);
+    setCurrentTurn(5);
+    setStage("report");
+    setShowHistoryModal(false);
+  };
+
   // Reset Everything
   const handleRestart = () => {
     setStage("select");
@@ -215,6 +270,7 @@ export default function Home() {
     setDraft("");
     setCurrentTurn(1);
     setReport(null);
+    setSavedRecordId(null);
     setErrorMsg(null);
   };
 
@@ -238,14 +294,25 @@ export default function Home() {
               <div className="brand-title-wrap">
                 <h1 className="brand-title">깻잎논쟁 끝장토론</h1>
                 <span className="badge-model">Gemini 3.7 Flash</span>
+                <span className="badge-db">Supabase DB 연동</span>
               </div>
               <p className="brand-subtitle">
-                대한민국 최대의 난제, AI와 5턴으로 승부하라!
+                대한민국 최대의 난제, AI와 5턴으로 승부하고 기록하세요!
               </p>
             </div>
           </div>
 
           <div className="header-controls">
+            <button
+              className="btn-secondary btn-history-header"
+              onClick={() => {
+                loadSavedRecords();
+                setShowHistoryModal(true);
+              }}
+              type="button"
+            >
+              📜 역대 기록 보관함 ({savedRecords.length})
+            </button>
             {stage !== "select" && (
               <button
                 className="btn-secondary"
@@ -281,7 +348,7 @@ export default function Home() {
               <p className="hero-desc">
                 당신의 입장을 선택하면, <strong>Gemini 3.7 Flash</strong>가
                 정반대 입장에서 당신을 논리적으로 공격합니다. 5턴 동안 치열하게
-                논쟁하고 결과 리포트를 받아보세요!
+                논쟁하고 <strong>Supabase</strong>에 기록된 요약 리포트를 받아보세요!
               </p>
             </div>
 
@@ -327,6 +394,44 @@ export default function Home() {
               </button>
             </div>
 
+            {/* Recent Debate Records Quick Bar */}
+            {savedRecords.length > 0 && (
+              <div className="quick-history-section">
+                <div className="quick-history-header">
+                  <span>💾 최근 Supabase에 저장된 토론 기록</span>
+                  <button
+                    className="btn-text"
+                    onClick={() => setShowHistoryModal(true)}
+                    type="button"
+                  >
+                    전체보기 ({savedRecords.length}) ›
+                  </button>
+                </div>
+                <div className="quick-history-list">
+                  {savedRecords.slice(0, 3).map((rec) => (
+                    <button
+                      className="quick-history-item"
+                      key={rec.id}
+                      onClick={() => handleOpenRecord(rec)}
+                      type="button"
+                    >
+                      <span className="quick-stance-badge">
+                        {rec.stance.includes("떼어준다") && !rec.stance.includes("않는다")
+                          ? "🌿 떼어준다"
+                          : "🚫 안 떼어준다"}
+                      </span>
+                      <strong className="quick-title">
+                        {rec.report?.verdict?.resultTitle || "토론 기록"}
+                      </strong>
+                      <span className="quick-score">
+                        {rec.report?.overallScore}점
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="debate-rules-bar">
               <div className="rule-item">
                 <span className="rule-num">1</span>
@@ -338,7 +443,7 @@ export default function Home() {
               </div>
               <div className="rule-item">
                 <span className="rule-num">3</span>
-                <span>5턴 후 3개 평가 요소로 결과가 시각화됩니다.</span>
+                <span>결과가 3대 요소로 시각화되어 Supabase에 저장됩니다.</span>
               </div>
             </div>
           </div>
@@ -482,8 +587,8 @@ export default function Home() {
                         5턴의 치열한 논쟁이 완료되었습니다!
                       </h3>
                       <p className="finish-desc">
-                        Gemini 3.7 Flash 심판관이 3개 핵심 요소(논리력, 공감도,
-                        일관성)로 토론 결과를 분석했습니다.
+                        Gemini 3.7 Flash 심판관이 리포트를 생성하고 Supabase DB에
+                        자동 저장합니다.
                       </p>
                     </div>
                   </div>
@@ -496,11 +601,10 @@ export default function Home() {
                   >
                     {isGeneratingReport ? (
                       <>
-                        <span className="spinner" /> 리포트 분석 및 시각화
-                        생성 중...
+                        <span className="spinner" /> 리포트 분석 및 DB 저장 중...
                       </>
                     ) : (
-                      <>📊 요약 리포트 보기 →</>
+                      <>📊 요약 리포트 보기 및 저장 →</>
                     )}
                   </button>
                 </div>
@@ -569,6 +673,13 @@ export default function Home() {
         {/* ========================================================================= */}
         {stage === "report" && report && (
           <div className="screen-report">
+            {/* Supabase Saved Notice Badge */}
+            {savedRecordId && (
+              <div className="db-saved-badge">
+                <span>💾 Supabase `debate_records` 테이블에 정상 저장되었습니다. (ID: {savedRecordId.slice(0, 8)}...)</span>
+              </div>
+            )}
+
             {/* Header / Verdict Banner */}
             <div
               className={`report-verdict-banner ${
@@ -779,6 +890,72 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Past Records Viewer on Report Page */}
+            {savedRecords.length > 0 && (
+              <div className="report-history-section">
+                <div className="history-section-header">
+                  <h4 className="history-title">📚 Supabase 역대 토론 기록 보관함</h4>
+                  <button
+                    className="btn-secondary"
+                    onClick={loadSavedRecords}
+                    type="button"
+                  >
+                    🔄 기록 새로고침
+                  </button>
+                </div>
+                <div className="history-cards-grid">
+                  {savedRecords.map((rec) => (
+                    <div
+                      className={`history-card-item ${
+                        rec.id === savedRecordId ? "active-record" : ""
+                      }`}
+                      key={rec.id}
+                    >
+                      <div className="history-card-top">
+                        <span
+                          className={`history-stance-badge ${
+                            rec.stance.includes("떼어준다") && !rec.stance.includes("않는다")
+                              ? "pill-help"
+                              : "pill-no-help"
+                          }`}
+                        >
+                          {rec.stance}
+                        </span>
+                        <span className="history-date">
+                          {new Date(rec.created_at).toLocaleDateString("ko-KR", {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+
+                      <h5 className="history-verdict-title">
+                        {rec.report?.verdict?.resultTitle || "토론 결과"}
+                      </h5>
+                      <p className="history-punchline">
+                        {rec.report?.verdict?.punchline || ""}
+                      </p>
+
+                      <div className="history-card-bottom">
+                        <span className="history-score-tag">
+                          점수: <strong>{rec.report?.overallScore}점</strong>
+                        </span>
+                        <button
+                          className="btn-history-load"
+                          onClick={() => handleOpenRecord(rec)}
+                          type="button"
+                        >
+                          {rec.id === savedRecordId ? "현재 보고 있음" : "기록 불러오기 👁️"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Bottom Actions */}
             <div className="report-actions">
               <button
@@ -795,6 +972,84 @@ export default function Home() {
               >
                 💬 5턴 대화 다시 보기
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* HISTORY MODAL (GLOBAL)                                                    */}
+        {/* ========================================================================= */}
+        {showHistoryModal && (
+          <div className="modal-backdrop" onClick={() => setShowHistoryModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <div>
+                  <h3 className="modal-title">📜 Supabase 역대 토론 기록 보관함</h3>
+                  <p className="modal-subtitle">
+                    `debate_records` 테이블에 저장된 모든 토론 세션을 다시 확인할 수 있습니다.
+                  </p>
+                </div>
+                <button
+                  className="btn-close"
+                  onClick={() => setShowHistoryModal(false)}
+                  type="button"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="modal-body">
+                {isLoadingRecords ? (
+                  <div className="loading-state">
+                    <span className="spinner" /> 기록을 불러오는 중...
+                  </div>
+                ) : savedRecords.length === 0 ? (
+                  <div className="empty-history-state">
+                    <div className="empty-icon">📂</div>
+                    <p>아직 저장된 토론 기록이 없습니다.</p>
+                    <small>5턴 토론을 완료하고 첫 기록을 남겨보세요!</small>
+                  </div>
+                ) : (
+                  <div className="modal-history-list">
+                    {savedRecords.map((rec) => (
+                      <div className="modal-history-row" key={rec.id}>
+                        <div className="modal-row-left">
+                          <span
+                            className={`history-stance-badge ${
+                              rec.stance.includes("떼어준다") && !rec.stance.includes("않는다")
+                                ? "pill-help"
+                                : "pill-no-help"
+                            }`}
+                          >
+                            {rec.stance}
+                          </span>
+                          <div className="modal-record-titles">
+                            <strong className="modal-record-heading">
+                              {rec.report?.verdict?.resultTitle || "토론 결과"}
+                            </strong>
+                            <span className="modal-record-date">
+                              {new Date(rec.created_at).toLocaleString("ko-KR")}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="modal-row-right">
+                          <span className="modal-score-pill">
+                            {rec.report?.overallScore}점
+                          </span>
+                          <button
+                            className="btn-primary btn-modal-load"
+                            onClick={() => handleOpenRecord(rec)}
+                            type="button"
+                          >
+                            상세 보기 →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

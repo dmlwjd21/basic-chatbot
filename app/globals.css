@@ -113,7 +113,8 @@ body {
 .brand-title-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .brand-title {
@@ -132,13 +133,38 @@ body {
   color: #fff;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.02em;
+}
+
+.badge-db {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #3ecf8e;
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .brand-subtitle {
   margin: 3px 0 0;
   font-size: 12px;
   color: var(--ink-600);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-history-header {
+  background: #f0fdf4;
+  color: var(--leaf-800);
+  border-color: var(--leaf-200);
+}
+
+.btn-history-header:hover {
+  background: var(--leaf-100);
 }
 
 .error-banner {
@@ -188,6 +214,19 @@ body {
   color: var(--ink-900);
 }
 
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--leaf-700);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-text:hover {
+  text-decoration: underline;
+}
+
 .btn-large {
   padding: 14px 28px;
   font-size: 15px;
@@ -197,10 +236,10 @@ body {
 /* SCREEN 1: STANCE SELECTION                                                */
 /* ========================================================================= */
 .screen-select {
-  padding: 44px 36px 36px;
+  padding: 36px 36px 32px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
   flex: 1;
   justify-content: center;
 }
@@ -219,12 +258,12 @@ body {
   color: #b45309;
   font-size: 12px;
   font-weight: 700;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .hero-title {
-  margin: 0 0 14px;
-  font-size: 28px;
+  margin: 0 0 12px;
+  font-size: 26px;
   font-weight: 800;
   line-height: 1.35;
   color: var(--ink-900);
@@ -247,7 +286,7 @@ body {
 .stance-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 18px;
   max-width: 820px;
   margin: 0 auto;
   width: 100%;
@@ -255,7 +294,7 @@ body {
 
 .stance-card {
   position: relative;
-  padding: 30px 24px 24px;
+  padding: 26px 22px 22px;
   border-radius: 20px;
   border: 2px solid var(--border-light);
   background: #ffffff;
@@ -294,19 +333,19 @@ body {
 }
 
 .stance-icon {
-  font-size: 40px;
-  margin-bottom: 12px;
+  font-size: 36px;
+  margin-bottom: 10px;
 }
 
 .stance-heading {
   margin: 0 0 8px;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
   color: var(--ink-900);
 }
 
 .stance-text {
-  margin: 0 0 20px;
+  margin: 0 0 18px;
   font-size: 13px;
   color: var(--ink-600);
   line-height: 1.6;
@@ -321,7 +360,7 @@ body {
   background: #f8fafc;
   border-radius: 10px;
   font-size: 11px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .my-stance {
@@ -338,19 +377,84 @@ body {
   font-size: 13px;
   font-weight: 700;
   color: var(--leaf-600);
-  display: flex;
-  align-items: center;
 }
 
 .stance-no-help .card-action {
   color: #ef4444;
 }
 
+/* Quick History on Select Screen */
+.quick-history-section {
+  max-width: 820px;
+  margin: 0 auto;
+  width: 100%;
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 14px 18px;
+}
+
+.quick-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-700);
+  margin-bottom: 10px;
+}
+
+.quick-history-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.quick-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.quick-history-item:hover {
+  border-color: var(--leaf-500);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.quick-stance-badge {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.quick-title {
+  font-size: 11px;
+  color: var(--ink-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.quick-score {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--leaf-700);
+}
+
 .debate-rules-bar {
   display: flex;
   justify-content: center;
   gap: 24px;
-  padding: 14px 20px;
+  padding: 12px 18px;
   background: #f8fafc;
   border-radius: 12px;
   font-size: 12px;
@@ -797,9 +901,22 @@ body {
   padding: 28px 32px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
   overflow-y: auto;
   max-height: calc(100vh - 120px);
+}
+
+.db-saved-badge {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Verdict Banner */
@@ -1129,6 +1246,274 @@ body {
   color: var(--ink-600);
 }
 
+/* Report History Section (Supabase Records) */
+.report-history-section {
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.history-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.history-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink-900);
+}
+
+.history-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.history-card-item {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s;
+}
+
+.history-card-item:hover {
+  border-color: var(--leaf-500);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.active-record {
+  border-color: var(--leaf-600);
+  background: #f0fdf4;
+}
+
+.history-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.history-stance-badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.history-date {
+  font-size: 10px;
+  color: var(--ink-400);
+}
+
+.history-verdict-title {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-punchline {
+  margin: 0 0 12px;
+  font-size: 11px;
+  color: var(--ink-600);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.history-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.history-score-tag {
+  font-size: 11px;
+  color: var(--ink-600);
+}
+
+.history-score-tag strong {
+  color: var(--leaf-700);
+}
+
+.btn-history-load {
+  padding: 4px 8px;
+  background: #f1f5f9;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-history-load:hover {
+  background: var(--leaf-600);
+  color: white;
+  border-color: var(--leaf-600);
+}
+
+/* History Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 680px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.modal-title {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink-900);
+}
+
+.modal-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-600);
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--ink-400);
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.btn-close:hover {
+  color: var(--ink-900);
+}
+
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.loading-state, .empty-history-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: var(--ink-600);
+  font-size: 13px;
+}
+
+.empty-icon {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.modal-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.modal-history-row:hover {
+  background: #ffffff;
+  border-color: var(--leaf-500);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.modal-row-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.modal-record-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-record-heading {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink-900);
+}
+
+.modal-record-date {
+  font-size: 11px;
+  color: var(--ink-400);
+}
+
+.modal-row-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-score-pill {
+  padding: 4px 10px;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--leaf-700);
+}
+
+.btn-modal-load {
+  padding: 8px 14px;
+  font-size: 12px;
+}
+
 /* Report Actions */
 .report-actions {
   display: flex;
@@ -1150,10 +1535,16 @@ body {
   .stance-grid {
     grid-template-columns: 1fr;
   }
+  .quick-history-list {
+    grid-template-columns: 1fr;
+  }
   .elements-grid {
     grid-template-columns: 1fr;
   }
   .report-secondary-grid {
+    grid-template-columns: 1fr;
+  }
+  .history-cards-grid {
     grid-template-columns: 1fr;
   }
   .report-verdict-banner {
